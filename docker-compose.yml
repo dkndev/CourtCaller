@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  courtcaller:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-JBFqnCBsd6RMkjVDRZzb}
+    restart: unless-stopped
+    container_name: courtcaller
