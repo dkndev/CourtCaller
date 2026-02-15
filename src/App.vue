@@ -1,9 +1,15 @@
 <template>
-  <header class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-2 shadow-lg">
-    <div class="flex justify-between px-5">
-      <div></div>
-      <h1 class="text-3xl font-bold">CourtCaller</h1>
+  <header class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-2 shadow-lg sticky top-0 z-50">
+    <div class="flex justify-between items-center px-5">
       <Button icon="pi pi-cog" rounded text @click="openSettings"/>
+      <h1 class="text-3xl font-bold">CourtCaller</h1>
+      <Button
+        severity="primary"
+        :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
+        :disabled="!settings.scrapeUrl.trim() || isLoading"
+        @click="updateMatches"
+        label="Update machten"
+      />
     </div>
   </header>
 
@@ -14,7 +20,8 @@
   />
 
   <match-list
-    :selected-ids="selectedIds"
+    ref="matchListRef"
+    v-model:is-loading="isLoading"
     :scrape-url="settings.scrapeUrl"
     :court-amount="settings.courtAmount"
     :announcement-template="settings.announcementTemplate"
@@ -27,12 +34,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import MatchList from '@/components/MatchList.vue'
 import SettingsDialog from '@/components/SettingsDialog.vue'
 import Button from 'primevue/button'
-
-const selectedIds = computed(() => [])
 
 const SETTINGS_STORAGE_KEY = 'courtcaller.settings.v1'
 
@@ -46,6 +51,9 @@ const settings = ref({
   elevenApiKey: '',
   elevenVoiceId: ''
 })
+
+const isLoading = ref(false)
+const matchListRef = ref(null)
 
 const loadSettings = () => {
   try {
@@ -76,6 +84,12 @@ const saveSettings = (newSettings) => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings.value))
   } catch {
     // ignore
+  }
+}
+
+const updateMatches = () => {
+  if (matchListRef.value && matchListRef.value.fetchMatches) {
+    matchListRef.value.fetchMatches()
   }
 }
 

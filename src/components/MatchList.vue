@@ -5,20 +5,11 @@
       <div v-if="error" class="p-3 bg-red-100 text-red-700 rounded-lg text-sm border-l-4 border-red-700">{{ error }}</div>
       <div v-if="successMessage" class="p-3 bg-green-100 text-green-700 rounded-lg text-sm border-l-4 border-green-700 mt-2">{{ successMessage }}</div>
       <Button
-        v-if="!error && !successMessage"
         icon="pi pi-stop"
         :disabled="!isPlaying"
         @click="stopAudio"
         severity="danger"
         label="Afspelen stoppen"
-      >
-      </Button>
-      <Button
-        severity="primary"
-        :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
-        :disabled="!matchUrl.trim() || isLoading"
-        @click="fetchMatches"
-        label="Update machten"
       >
       </Button>
     </div>
@@ -28,14 +19,24 @@
     </div>
 
     <div v-else class="space-y-2 mb-8">
-      <div
-        v-for="match in matches"
-        :key="match.id"
-        class="border-2 border-gray-300 rounded-lg p-3 cursor-pointer transition-all hover:border-blue-600 hover:shadow-md hover:-translate-y-0.5"
-        :class="{ 'border-blue-600 bg-blue-50 shadow-md': isSelected(match.id) }"
-        role="button"
-        tabindex="0"
-      >
+      <template v-for="(match, index) in matches" :key="match.id">
+        <!-- Time divider -->
+        <div
+          v-if="index === 0 || match.time !== matches[index - 1].time"
+          class="flex items-center gap-3 my-4 pt-4"
+        >
+          <div class="flex-1 h-px bg-orange-500"></div>
+          <div class="text-white font-bold text-lg px-3 py-1 bg-orange-500 rounded-full">
+            {{ match.time || match.matchNumber }}
+          </div>
+          <div class="flex-1 h-px bg-orange-500"></div>
+        </div>
+
+        <div
+          class="border-2 border-gray-500 rounded-lg p-3 cursor-pointer hover:border-orange-500 hover:shadow-lg hover:-translate-y-0.5"
+          role="button"
+          tabindex="0"
+        >
         <div class="space-y-3">
           <div class="grid grid-cols-3 gap-3 items-center">
             <div>
@@ -105,7 +106,8 @@
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </template>
     </div>
 
     <div v-if="matches.length > 0" class="text-center p-5 bg-gray-100 rounded-lg text-gray-600 text-sm">
@@ -119,10 +121,6 @@ import { ref, watch } from 'vue'
 import Button from 'primevue/button'
 
 const props = defineProps({
-  selectedIds: {
-    type: Array,
-    default: () => [],
-  },
   scrapeUrl: {
     type: String,
     default: '',
@@ -155,15 +153,18 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['toggle', 'court-assigned'])
+const emit = defineEmits(['toggle', 'court-assigned', 'update:isLoading'])
 
 const CACHE_KEY = 'courtcaller_matches_cache'
 
 const matchUrl = ref(props.scrapeUrl || '')
 const matches = ref([])
-const isLoading = ref(false)
 const error = ref('')
 const successMessage = ref('')
 
@@ -225,7 +226,7 @@ const DISCIPLINE_NAMES = {
 const fetchMatches = async () => {
   if (!matchUrl.value.trim()) return
 
-  isLoading.value = true
+  emit('update:isLoading', true)
   error.value = ''
   successMessage.value = ''
 
@@ -278,7 +279,7 @@ const fetchMatches = async () => {
     console.error('Fetch matches error:', err)
     error.value = `Fout: ${err.message}`
   } finally {
-    isLoading.value = false
+    emit('update:isLoading', false)
   }
 }
 
@@ -348,7 +349,6 @@ const getDisciplineClass = (disciplineId) => {
   return `discipline-${String(disciplineId || '').toLowerCase()}`
 }
 
-const isSelected = (id) => props.selectedIds.includes(id)
 
 const assignCourt = (match, courtNumber) => {
   match.court = courtNumber
@@ -414,26 +414,31 @@ const playTeamRecall = (match, team) => {
 
   playText(announcementText)
 }
+
+// Expose fetchMatches so parent can call it
+defineExpose({
+  fetchMatches
+})
 </script>
 
 <style scoped>
 .discipline-he {
-  @apply bg-blue-600;
+  background-color: #ff6600; /* Orange */
 }
 
 .discipline-hd {
-  @apply bg-purple-700;
+  background-color: #cc0000; /* Red */
 }
 
 .discipline-de {
-  @apply bg-pink-500;
+  background-color: #ff9933; /* Light orange */
 }
 
 .discipline-dd {
-  @apply bg-cyan-500;
+  background-color: #004080; /* Blue */
 }
 
 .discipline-gd {
-  @apply bg-green-500;
+  background-color: #ff3300; /* Red-orange */
 }
 </style>
