@@ -45,7 +45,7 @@ def synthesize():
         audio = client.text_to_speech.convert(
             voice_id=voice_id,
             text=text,
-            model_id='eleven_multilingual_v2',
+            model_id='eleven_turbo_v2_5', # eleven_multilingual_v2 , eleven_turbo_v2_5 (50% cheaper)
             output_format='mp3_44100_128',
             language_code='nl'
         )
