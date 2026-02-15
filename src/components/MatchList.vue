@@ -117,8 +117,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
 import Button from 'primevue/button'
+import { useMatches } from '@/composables/useMatches'
+import { useAudio } from '@/composables/useAudio'
+import { useMatchActions } from '@/composables/useMatchActions'
 
 const props = defineProps({
   scrapeUrl: {
@@ -161,259 +163,28 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle', 'court-assigned', 'update:isLoading'])
 
-const CACHE_KEY = 'courtcaller_matches_cache'
+// Use composables
+const {
+  matches,
+  error,
+  successMessage,
+  fetchMatches,
+  saveCacheMatches
+} = useMatches(props, emit)
 
-const matchUrl = ref(props.scrapeUrl || '')
-const matches = ref([])
-const error = ref('')
-const successMessage = ref('')
+const { isPlaying, stopAudio, playText } = useAudio(props)
 
-let currentAudioElement = null
-const isPlaying = ref(false)
-
-// Load cached matches on component mount
-const loadCachedMatches = () => {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (cached) {
-      const data = JSON.parse(cached)
-      matches.value = data.matches || []
-      matchUrl.value = data.url || matchUrl.value
-      if (matches.value.length > 0) {
-        successMessage.value = `${matches.value.length} wedstrijden geladen uit cache`
-        setTimeout(() => {
-          successMessage.value = ''
-        }, 3000)
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load cached matches:', err)
-  }
+const setError = (msg) => {
+  error.value = msg
 }
 
-// Save matches to cache
-const saveCacheMatches = () => {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      matches: matches.value,
-      url: matchUrl.value,
-      timestamp: new Date().toISOString()
-    }))
-  } catch (err) {
-    console.error('Failed to save matches to cache:', err)
-  }
-}
-
-// Load cached data on mount
-loadCachedMatches()
-
-watch(
-  () => props.scrapeUrl,
-  (val) => {
-    matchUrl.value = val || ''
-  },
-  {immediate: true}
-)
-
-const DISCIPLINE_NAMES = {
-  'HE': 'Heren Enkel',
-  'HD': 'Heren Dubbel',
-  'DE': 'Dames Enkel',
-  'DD': 'Dames Dubbel',
-  'GD': 'Gemengd Dubbel'
-}
-
-const fetchMatches = async () => {
-  if (!matchUrl.value.trim()) return
-
-  emit('update:isLoading', true)
-  error.value = ''
-  successMessage.value = ''
-
-  try {
-    const response = await fetch(`${props.apiBaseUrl}/api/scrape-matches`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        url: matchUrl.value
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `API error: ${response.status}`)
-    }
-
-    const data = await response.json()
-    const newMatches = data.matches || []
-
-    // Preserve court assignments from existing matches
-    const oldMatches = matches.value
-    const mergedMatches = newMatches.map(newMatch => {
-      // Try to find existing match with same ID or similar properties
-      const existingMatch = oldMatches.find(oldMatch =>
-        oldMatch.id === newMatch.id ||
-        (oldMatch.time === newMatch.time &&
-         oldMatch.teamA.names[0] === newMatch.teamA.names[0])
-      )
-
-      // If found and has manually assigned court, preserve it
-      // Otherwise use the court from the server (newMatch.court)
-      if (existingMatch && existingMatch.court) {
-        return { ...newMatch, court: existingMatch.court, callCount: existingMatch.callCount || 1 }
-      }
-
-      // New match or no previous court assignment - use server's court if available
-      return { ...newMatch, callCount: newMatch.court ? 1 : 0 }
-    })
-
-    matches.value = mergedMatches
-    saveCacheMatches()
-    successMessage.value = `${matches.value.length} wedstrijden geladen!`
-    setTimeout(() => {
-      successMessage.value = ''
-    }, 3000)
-  } catch (err) {
-    console.error('Fetch matches error:', err)
-    error.value = `Fout: ${err.message}`
-  } finally {
-    emit('update:isLoading', false)
-  }
-}
-
-const stopAudio = () => {
-  if (currentAudioElement) {
-    currentAudioElement.pause()
-    currentAudioElement.currentTime = 0
-    currentAudioElement = null
-  }
-  isPlaying.value = false
-}
-
-const callTtsApi = async (text) => {
-  const response = await fetch(`${props.apiBaseUrl}/api`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      text: text,
-      api_key: props.apiKey || '',
-      voice_id: props.voiceId || ''
-    })
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
-  }
-
-  return await response.blob()
-}
-
-const playAudio = (audioBlob) => {
-  const audioUrl = URL.createObjectURL(audioBlob)
-  const audioElement = new Audio(audioUrl)
-  currentAudioElement = audioElement
-  audioElement.playbackRate = 0.9
-  audioElement.onended = () => {
-    isPlaying.value = false
-  }
-  audioElement.play()
-}
-
-const playText = async (text) => {
-  if (!text.trim()) return
-
-  isPlaying.value = true
-
-  try {
-    const audioBlob = await callTtsApi(text)
-    playAudio(audioBlob)
-  } catch (err) {
-    console.error('TTS playback error:', err)
-    error.value = `Fout bij afspelen: ${err.message}`
-    setTimeout(() => {
-      error.value = ''
-    }, 3000)
-  }
-}
-
-const getDisciplineName = (disciplineId) => {
-  return DISCIPLINE_NAMES[disciplineId] || disciplineId
-}
-
-const getDisciplineClass = (disciplineId) => {
-  return `discipline-${String(disciplineId || '').toLowerCase()}`
-}
-
-
-const assignCourt = (match, courtNumber) => {
-  match.court = courtNumber
-  match.callCount = 1
-  saveCacheMatches()
-
-  // Generate announcement using template
-  const discipline = DISCIPLINE_NAMES[match.teamA.discipline] || match.teamA.discipline || 'Onbekend'
-  const level = match.teamA.levelLabel ? `${match.teamA.levelLabel}` : ''
-  const teamANames = match.teamA.names.length > 0 ? match.teamA.names.join(' en ') : 'Team A'
-  const teamBNames = match.teamB.names.length > 0 ? match.teamB.names.join(' en ') : 'Team B'
-
-  // Replace template variables
-  const text = props.announcementTemplate
-    .replace(/{court}/g, match.court)
-    .replace(/{discipline}/g, discipline)
-    .replace(/{level}/g, level)
-    .replace(/{teamA}/g, teamANames)
-    .replace(/{teamB}/g, teamBNames)
-
-  playText(text)
-}
-
-const generateAnnouncementTextAanvangen = (match) => {
-  return props.aanvangenTemplate.replace(/{court}/g, match.court)
-}
-
-const playMatchAanvangen = (match) => {
-  if (!match.court) return
-
-  const announcementText = generateAnnouncementTextAanvangen(match)
-
-  playText(announcementText)
-}
-
-const playTeamRecall = (match, team) => {
-  if (!match.court) return
-
-  if (!match.callCount) {
-    match.callCount = 0
-  }
-  match.callCount++
-
-  // Save to cache after incrementing callCount
-  saveCacheMatches()
-
-  const teamNames = team === 'A' ? match.teamA.names : match.teamB.names
-  const teamNamesText = teamNames.length > 0 ? teamNames.join(' en ') : (team === 'A' ? 'Team A' : 'Team B')
-
-  // Convert number to Dutch ordinal
-  const ordinals = {
-    2: 'tweede',
-    3: 'derde',
-    4: 'vierde',
-  }
-  const callCountText = ordinals[match.callCount] || `${match.callCount}de`
-
-  // Replace template variables
-  const announcementText = props.recallTemplate
-    .replace(/{callCount}/g, callCountText)
-    .replace(/{court}/g, match.court)
-    .replace(/{teamNames}/g, teamNamesText)
-
-  playText(announcementText)
-}
+const {
+  getDisciplineName,
+  getDisciplineClass,
+  assignCourt,
+  playMatchAanvangen,
+  playTeamRecall
+} = useMatchActions(props, matches, saveCacheMatches, playText, setError)
 
 // Expose fetchMatches so parent can call it
 defineExpose({
