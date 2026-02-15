@@ -41,7 +41,7 @@ const settings = ref({
   courtAmount: 11,
   announcementTemplate: 'Op baan {court}, {discipline} {level}: {teamA} tegen {teamB}. Baan {court}',
   aanvangenTemplate: 'Baan {court}, aanvangen alsjeblieft',
-  recallTemplate: '{callCount}de oproep, baan {court}, {teamNames}',
+  recallTemplate: '{callCount} oproep, baan {court}, {teamNames}',
   ttsApiUrl: 'http://localhost:5000',
   elevenApiKey: '',
   elevenVoiceId: ''

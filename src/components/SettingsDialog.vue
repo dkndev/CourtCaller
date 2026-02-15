@@ -11,7 +11,7 @@
 
           <div>
             <label for="courtAmount" class="text-xs font-bold text-white block mb-1">Aantal Banen</label>
-            <InputNumber id="courtAmount" v-model="localSettings.courtAmount" :min="1" :max="30" :step="1" showButtons class="w-full" />
+            <InputNumber id="courtAmount" v-model="localSettings.courtAmount" :min="1" :max="30" :step="1" showButtons class="w-full"/>
           </div>
         </div>
       </AccordionTab>
@@ -60,7 +60,7 @@
               v-model="localSettings.recallTemplate"
               rows="2"
               class="w-full"
-              placeholder="{callCount}de oproep, baan {court}, {teamNames}"
+              placeholder="{callCount} oproep, baan {court}, {teamNames}"
             />
             <small class="text-gray-500 text-xs">
               Variabelen: {callCount}, {court}, {teamNames}

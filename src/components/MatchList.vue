@@ -141,7 +141,7 @@ const props = defineProps({
   },
   recallTemplate: {
     type: String,
-    default: '{callCount}de oproep, baan {court}, {teamNames}',
+    default: '{callCount} oproep, baan {court}, {teamNames}',
   },
   apiBaseUrl: {
     type: String,
@@ -392,12 +392,23 @@ const playTeamRecall = (match, team) => {
   }
   match.callCount++
 
+  // Save to cache after incrementing callCount
+  saveCacheMatches()
+
   const teamNames = team === 'A' ? match.teamA.names : match.teamB.names
   const teamNamesText = teamNames.length > 0 ? teamNames.join(' en ') : (team === 'A' ? 'Team A' : 'Team B')
 
+  // Convert number to Dutch ordinal
+  const ordinals = {
+    2: 'tweede',
+    3: 'derde',
+    4: 'vierde',
+  }
+  const callCountText = ordinals[match.callCount] || `${match.callCount}de`
+
   // Replace template variables
   const announcementText = props.recallTemplate
-    .replace(/{callCount}/g, match.callCount)
+    .replace(/{callCount}/g, callCountText)
     .replace(/{court}/g, match.court)
     .replace(/{teamNames}/g, teamNamesText)
 
