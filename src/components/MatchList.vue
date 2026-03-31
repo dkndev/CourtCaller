@@ -1,5 +1,5 @@
 <template>
-  <div class="p-5 max-w-6xl mx-auto">
+  <div class="p-5 mx-auto">
     <div class="mb-8 flex items-center justify-between">
       <h2 class="text-2xl font-bold text-white">Wedstrijden</h2>
       <div v-if="error" class="p-3 bg-red-100 text-red-700 rounded-lg text-sm border-l-4 border-red-700">{{ error }}</div>
@@ -33,7 +33,7 @@
         </div>
 
         <div
-          class="border-2 border-gray-500 rounded-lg p-3 cursor-pointer hover:border-orange-500 hover:shadow-lg hover:-translate-y-0.5"
+          class="border-2 border-gray-500 rounded-lg p-3 cursor-pointer hover:border-dijle-red-700 hover:shadow-lg hover:-translate-y-0.5"
           role="button"
           tabindex="0"
         >
@@ -55,26 +55,26 @@
                   v-if="match.court"
                   :label="match.callCount"
                   icon="pi pi-volume-up"
-                  severity="info"
+                  severity="danger"
                   text
                   rounded
                   @click.stop="playTeamRecall(match, 'A')"
                   class="text-xs"
                 />
-                <div class="text-sm font-semibold text-white text-lg flex-1">
+                <div class="text-xl font-semibold text-white text-lg flex-1">
                   <span v-for="(name, idx) in match.teamA.names" :key="`a-${idx}`" class="block">{{ name }}</span>
                 </div>
               </div>
-              <div class="text-center font-bold text-white text-sm">vs</div>
+              <div class="text-center font-bold text-white text-xl">vs</div>
               <div class="flex items-center gap-2">
-                <div class="text-sm font-semibold text-white text-lg flex-1">
+                <div class="text-xl font-semibold text-white text-lg flex-1">
                   <span v-for="(name, idx) in match.teamB.names" :key="`b-${idx}`" class="block">{{ name }}</span>
                 </div>
                 <Button
                   v-if="match.court"
                   :label="match.callCount"
                   icon="pi pi-volume-up"
-                  severity="info"
+                  severity="danger"
                   text
                   rounded
                   @click.stop="playTeamRecall(match, 'B')"
@@ -92,17 +92,27 @@
                   v-for="court in courtAmount"
                   :key="court"
                   :label="court.toString()"
-                  :severity="match.court === court ? 'primary' : 'secondary'"
+                  :severity="match.court === court ? 'danger' : 'secondary'"
                   @click.stop="assignCourt(match, court)"
                 />
               </div>
-              <Button
-                v-if="match.court"
-                icon="pi pi-play"
-                label="Aanvangen"
-                severity="success"
-                @click.stop="playMatchAanvangen(match)"
-              />
+              <div>
+                <Button
+                  v-if="match.court"
+                  icon="pi pi-refresh"
+                  label="reset"
+                  severity="secondary"
+                  class="mr-2"
+                  @click.stop="resetCourt(match)"
+                />
+                <Button
+                  v-if="match.court"
+                  icon="pi pi-play"
+                  label="Aanvangen"
+                  severity="danger"
+                  @click.stop="playMatchAanvangen(match)"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -182,6 +192,7 @@ const {
   getDisciplineName,
   getDisciplineClass,
   assignCourt,
+  resetCourt,
   playMatchAanvangen,
   playTeamRecall
 } = useMatchActions(props, matches, saveCacheMatches, playText, setError)

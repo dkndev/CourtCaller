@@ -1,6 +1,6 @@
 <template>
-  <Dialog v-model:visible="isOpen" header="Settings" :modal="true" :style="{ width: '100%', maxWidth: '800px' }">
-    <Accordion :activeIndex="[0]" multiple>
+  <Dialog v-model:visible="isOpen" header="Settings" :modal="true" :style="{ width: '100%', maxWidth: '1200px' }">
+    <Accordion :activeIndex="activeAccordion" multiple>
       <!-- General Settings -->
       <AccordionTab header="Algemene Instellingen">
         <div class="space-y-4">
@@ -88,6 +88,55 @@
           </div>
         </div>
       </AccordionTab>
+
+      <!-- Toernooi TV Mode -->
+      <AccordionTab header="📺 Toernooi TV">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <label for="tvMode" class="text-xs font-bold text-white block">Toernooi TV Modus</label>
+              <small class="text-gray-500 text-xs">Schakelt de cafetaria TV weergave in</small>
+            </div>
+            <ToggleSwitch id="tvMode" v-model="localSettings.tvMode"/>
+          </div>
+
+          <template v-if="localSettings.tvMode">
+            <div>
+              <label for="tvUpcomingCount" class="text-xs font-bold block mb-1">Aantal Komende Wedstrijden</label>
+              <InputNumber id="tvUpcomingCount" v-model="localSettings.tvUpcomingCount" :min="1" :step="1" showButtons class="w-full"/>
+            </div>
+
+            <div>
+              <label for="tvCurrentCount" class="text-xs font-bold block mb-1">Aantal Huidige Wedstrijden</label>
+              <InputNumber id="tvCurrentCount" v-model="localSettings.tvCurrentCount" :min="1" :step="1" showButtons class="w-full"/>
+            </div>
+
+            <div>
+              <label for="tvRefreshInterval" class="text-xs font-bold block mb-1">Auto-refresh Interval (seconden)</label>
+              <InputNumber id="tvRefreshInterval" v-model="localSettings.tvRefreshInterval" :min="10" :max="300" :step="5" showButtons class="w-full"/>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label for="tvAutoRefresh" class="text-xs font-bold">Auto-refresh Inschakelen</label>
+              <ToggleSwitch id="tvAutoRefresh" v-model="localSettings.tvAutoRefreshEnabled"/>
+            </div>
+
+            <div>
+              <label for="tvViewToggleInterval" class="text-xs font-bold block mb-1">Wissel Interval (seconden)</label>
+              <InputNumber id="tvViewToggleInterval" v-model="localSettings.tvViewToggleInterval" :min="5" :max="60" :step="5" showButtons class="w-full"/>
+              <small class="text-gray-500 text-xs">Hoe lang elke weergave wordt getoond (Huidige / Komende)</small>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <label for="tvDemoMode" class="text-xs font-bold block">Demo Modus</label>
+                <small class="text-gray-500 text-xs">Voegt een volgnummer toe aan de eerste {{ localSettings.tvCurrentCount }} wedstrijden</small>
+              </div>
+              <ToggleSwitch id="tvDemoMode" v-model="localSettings.tvDemoMode"/>
+            </div>
+          </template>
+        </div>
+      </AccordionTab>
     </Accordion>
 
     <template #footer>
@@ -107,6 +156,7 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Password from 'primevue/password'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 const props = defineProps({
   visible: {
@@ -123,6 +173,7 @@ const emit = defineEmits(['update:visible', 'save'])
 
 const isOpen = ref(props.visible)
 const localSettings = ref({...props.settings})
+const activeAccordion = ref([])
 
 watch(() => props.visible, (newVal) => {
   isOpen.value = newVal
@@ -134,6 +185,10 @@ watch(() => props.visible, (newVal) => {
 
 watch(isOpen, (newVal) => {
   emit('update:visible', newVal)
+
+  if (localSettings.value.tvDemoMode) {
+    activeAccordion.value = [3] // Open Toernooi TV tab if demo mode is enabled
+  }
 })
 
 const handleCancel = () => {

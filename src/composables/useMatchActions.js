@@ -91,10 +91,17 @@ export function useMatchActions (props, matches, saveCacheMatches, playText, set
     })
   }
 
+  const resetCourt = (match) => {
+    match.court = null
+    match.callCount = 0
+    saveCacheMatches()
+  }
+
   return {
     getDisciplineName,
     getDisciplineClass,
     assignCourt,
+    resetCourt,
     playMatchAanvangen,
     playTeamRecall
   }

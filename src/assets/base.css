@@ -84,3 +84,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+:root {
+    --color-dijle-red-50: #fff0f0;
+    --color-dijle-red-100: #ffdddd;
+    --color-dijle-red-200: #ffc1c1;
+    --color-dijle-red-300: #ff9595;
+    --color-dijle-red-400: #ff5959;
+    --color-dijle-red-500: #ff2626;
+    --color-dijle-red-600: #fc0606;
+    --color-dijle-red-700: #c60000;
+    --color-dijle-red-800: #af0505;
+    --color-dijle-red-900: #900c0c;
+    --color-dijle-red-950: #500000;
+}
