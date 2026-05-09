@@ -73,8 +73,11 @@
       <AccordionTab header="TTS Instellingen">
         <div class="space-y-4">
           <div>
-            <label for="ttsUrl" class="text-xs font-bold text-white block mb-1">TTS Server URL</label>
+            <label for="ttsUrl" class="text-xs font-bold text-white block mb-1">TTS Server URL (CourtCaller)</label>
             <InputText id="ttsUrl" v-model="localSettings.ttsApiUrl" type="text" placeholder="http://localhost:5000" class="w-full"/>
+            <small class="text-gray-500 text-xs">
+              Moet altijd verwijzen naar de CourtCaller server — ook in TV modus (audio wordt daar afgespeeld via SSE)
+            </small>
           </div>
 
           <div>
@@ -186,8 +189,11 @@ watch(() => props.visible, (newVal) => {
 watch(isOpen, (newVal) => {
   emit('update:visible', newVal)
 
-  if (localSettings.value.tvDemoMode) {
-    activeAccordion.value = [3] // Open Toernooi TV tab if demo mode is enabled
+
+  if (localSettings.value.tvMode) {
+    activeAccordion.value = [3]
+  } else {
+    activeAccordion.value = []
   }
 })
 

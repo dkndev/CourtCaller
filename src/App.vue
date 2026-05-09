@@ -74,8 +74,13 @@ import SettingsDialog from '@/components/SettingsDialog.vue'
 import TvDisplay from '@/components/TvDisplay.vue'
 import Button from 'primevue/button'
 import { useTvMatches } from '@/composables/useTvMatches.js'
+import { useTvAudio } from '@/composables/useTvAudio.js'
 
 const SETTINGS_STORAGE_KEY = 'courtcaller.settings.v1'
+
+// Default mode injected by the server at runtime via /config.js
+const serverAppMode = window.__APP_CONFIG__?.appMode ?? 'courtcaller'
+const serverCourtcallerUrl = window.__APP_CONFIG__?.courtcallerUrl ?? 'http://localhost:5000'
 
 const settings = ref({
   // CourtCaller settings
@@ -84,12 +89,11 @@ const settings = ref({
   announcementTemplate: 'Op baan {court}, {discipline} {level}: {teamA} tegen {teamB}. Baan {court}',
   aanvangenTemplate: 'Baan {court}, aanvangen alsjeblieft',
   recallTemplate: '{callCount} oproep, baan {court}, {teamNames}',
-  ttsApiUrl: 'http://localhost:5000',
+  ttsApiUrl: serverCourtcallerUrl,
   elevenApiKey: '',
   elevenVoiceId: '',
   // TV mode settings
-  tvMode: false,
-  tvTournamentUrl: '',
+  tvMode: serverAppMode === 'tv',
   tvUpcomingCount: 7,
   tvCurrentCount: 11,
   tvRefreshInterval: 30,
@@ -133,6 +137,8 @@ const {
   stop: tvStop,
 } = useTvMatches(settings)
 
+const { connect: tvAudioConnect, disconnect: tvAudioDisconnect } = useTvAudio(settings)
+
 const tvClearError = () => {
   tvError.value = ''
 }
@@ -159,8 +165,10 @@ const saveSettings = (newSettings) => {
   // Handle TV mode transitions
   if (!wasTvMode && settings.value.tvMode) {
     tvStart()
+    tvAudioConnect()
   } else if (wasTvMode && !settings.value.tvMode) {
     tvStop()
+    tvAudioDisconnect()
   } else if (settings.value.tvMode) {
     // Update auto-refresh
     if (wasAutoRefresh !== settings.value.tvAutoRefreshEnabled) {
@@ -183,17 +191,19 @@ const updateMatches = () => {
 onMounted(() => {
   if (settings.value.tvMode) {
     tvStart()
+    tvAudioConnect()
   }
 })
 
 onUnmounted(() => {
   tvStop()
+  tvAudioDisconnect()
 })
 
 // Watch tvMode toggle to start/stop TV mode
 watch(() => settings.value.tvMode, (enabled) => {
-  if (enabled) tvStart()
-  else tvStop()
+  if (enabled) { tvStart(); tvAudioConnect() }
+  else { tvStop(); tvAudioDisconnect() }
 })
 </script>
 

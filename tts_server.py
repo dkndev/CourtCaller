@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+import base64
 import os
+import queue
+import threading
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, Response, request, jsonify, send_from_directory
 from flask_cors import CORS
 from elevenlabs import ElevenLabs
 
@@ -13,8 +16,72 @@ CORS(app)
 ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY', '')
 ELEVENLABS_VOICE_ID = os.getenv('ELEVENLABS_VOICE_ID', 'JBFqnCBsd6RMkjVDRZzb')
 
+# App mode: 'courtcaller' (default) or 'tv'
+APP_MODE = os.getenv('APP_MODE', 'courtcaller').lower()
+COURTCALLER_URL = os.getenv('COURTCALLER_URL', 'http://localhost:5000').rstrip('/')
+
 # Initialize ElevenLabs client (optional; can also be overridden per request)
 elevenlabs = ElevenLabs(api_key=ELEVENLABS_API_KEY) if ELEVENLABS_API_KEY else None
+
+@app.route('/config.js')
+def config_js():
+    """Exposes server-side config to the frontend as a JS global."""
+    js = (
+        f'window.__APP_CONFIG__ = {{'
+        f' appMode: "{APP_MODE}",'
+        f' courtcallerUrl: "{COURTCALLER_URL}"'
+        f' }};'
+    )
+    return Response(js, mimetype='application/javascript')
+
+# ── Audio broadcast (SSE) ────────────────────────────────────────────────────
+_subscribers: list[queue.Queue] = []
+_subscribers_lock = threading.Lock()
+
+def _broadcast(audio_b64: str):
+    """Push a base64-encoded MP3 to all connected SSE subscribers."""
+    with _subscribers_lock:
+        dead = []
+        for q in _subscribers:
+            try:
+                q.put_nowait(audio_b64)
+            except queue.Full:
+                dead.append(q)
+        for q in dead:
+            _subscribers.remove(q)
+
+@app.route('/api/audio-stream')
+def audio_stream():
+    """SSE endpoint – TV clients connect here to receive audio broadcasts."""
+    q: queue.Queue = queue.Queue(maxsize=4)
+    with _subscribers_lock:
+        _subscribers.append(q)
+
+    def generate():
+        try:
+            # Send a comment immediately so the browser knows the connection is alive
+            yield ': connected\n\n'
+            while True:
+                try:
+                    audio_b64 = q.get(timeout=30)
+                    yield f'data: {audio_b64}\n\n'
+                except queue.Empty:
+                    # Keep-alive ping
+                    yield ': ping\n\n'
+        finally:
+            with _subscribers_lock:
+                if q in _subscribers:
+                    _subscribers.remove(q)
+
+    return Response(
+        generate(),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        }
+    )
+# ─────────────────────────────────────────────────────────────────────────────
 
 @app.route('/api', methods=['POST'])
 def synthesize():
@@ -45,15 +112,16 @@ def synthesize():
         audio = client.text_to_speech.convert(
             voice_id=voice_id,
             text=text,
-            model_id='eleven_turbo_v2_5', # eleven_multilingual_v2 , eleven_turbo_v2_5 (50% cheaper)
+            model_id='eleven_turbo_v2_5',
             output_format='mp3_44100_128',
             language_code='nl'
         )
 
-        # Convert to bytes
         audio_bytes = b''.join(audio)
 
-        # Return audio as MP3
+        # Broadcast to all connected TV clients
+        _broadcast(base64.b64encode(audio_bytes).decode('ascii'))
+
         return audio_bytes, 200, {
             'Content-Type': 'audio/mpeg',
             'Content-Disposition': 'inline'

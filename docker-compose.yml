@@ -1,12 +1,30 @@
 version: '3.8'
 
 services:
+
+  # ── CourtCaller (operator PC) ─────────────────────────────────────────────
   courtcaller:
     build: .
     ports:
       - "5000:5000"
     environment:
+      - APP_MODE=courtcaller
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
       - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-JBFqnCBsd6RMkjVDRZzb}
     restart: unless-stopped
     container_name: courtcaller
+
+  # ── Toernooi TV (cafetaria screen) ───────────────────────────────────────
+  toernooi-tv:
+    build: .
+    ports:
+      - "5001:5000"
+    environment:
+      - APP_MODE=tv
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-JBFqnCBsd6RMkjVDRZzb}
+      # Tell the TV browser where the CourtCaller server is so it can subscribe to the audio SSE stream.
+      # Change to the actual hostname/IP when running on separate machines.
+      - COURTCALLER_URL=${COURTCALLER_URL:-http://localhost:5000}
+    restart: unless-stopped
+    container_name: toernooi-tv
