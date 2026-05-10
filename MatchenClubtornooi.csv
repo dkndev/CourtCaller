@@ -1,0 +1,104 @@
+Tijd;Veld;Speler 1;Speler 2;Speler 3;Speler 4
+10u00;1;Ruben Hermus;Cil;Toon V.;Atharv
+10u00;2;Jonas G.;Amanuel;Klaas;Qitian (Timothy)
+10u00;3;Lucas;Jolie;Jasper H.;Ella
+10u00;4;Elliot;Franziska;Marco;Marijke
+10u00;5;Kristien/Evy**;Mona;Soetkin/Els L**;Hannah
+10u00;6;Vonne;Hanne;Kira;Erin
+10u30;1;Nelis;Sem;Thomas J.;Lander
+10u30;2;Carl;Wannes;Luca;Joppe
+10u30;3;Toon/Ryan**;Jannes;Yoeri;Bavo
+10u30;4;Felix;Dries;Pieter;Boonen
+10u30;5;Jelle;Mona;Wouter;Hanne
+10u30;6;Peter;Hannah;Ward;Erin
+10u30;7;Ruben Hermus;Emma;Klaas;Sien
+10u30;8;Jonas G.;Eline;Toon V.;Janne
+11u00;1;Jelte;Stefaan;Simon;Kobe
+11u00;2;Helger;Han;Ruben S.;Sander
+11u00;3;Toon/Ryan**;Gust;Felix;Eli
+11u00;4;Pieter;Thomas M.;Yoeri;Gyan
+11u00;5;Jelle;Jasper G.;Peter;Ruben Egging
+11u00;6;Wouter;Shain;Ward;Yuchen
+11u00;7;Sem;Lene/Jolien*;Wannes;Elina/Olivia*
+11u00;8;Lander;Wendy/Jolien*;Joppe;Nina/Olivia*
+11u30;1;Eerste;Vierde;Tweede;Derde
+11u30;2;Eerste;Vierde;Tweede;Derde
+11u30;3;Jasper G.;Lucas;Yuchen;Marco
+11u30;4;Ruben Egging;Jasper H.;Shain;Elliot
+11u30;5;Eerste;Vierde;Tweede;Derde
+11u30;6;Kristien/Evy**;Jolie;Kira;Marijke
+11u30;7;Soetkin/Els L**;Ella;Vonne;Franziska
+11u30;8;Eerste;Vierde;Tweede;Derde
+12u00;1;Jannes;Ruben Hermus;Dries;Jonas G.
+12u00;2;Boonen;Klaas;Bavo;Toon V.
+12u00;3;Stefaan;Emma;Sander;Janne
+12u00;4;Kobe;Eline;Han;Sien
+12u00;5;Sem;Gust;Joppe;Gyan
+12u00;6;Lander;Eli;Wannes;Thomas M.
+12u00;7;Eerste;Vierde;Tweede;Derde
+12u30;1;Toon/Ryan**;Jolie;Pieter;Franziska
+12u30;2;Felix;Ella;Yoeri;Marijke
+12u30;3;Eerste;Vierde;Tweede;Derde
+12u30;4;Eerste;Vierde;Tweede;Derde
+12u30;5;Jasper G.;Kristien/Evy**;Shain;Vonne
+12u30;6;Ruben Egging;Soetkin/Els L**;Yuchen;Kira
+12u30;7;Cil;Mona;Atharv;Erin
+12u30;8;Amanuel;Hannah;Qitian (Timothy);Hanne
+13u00;1;Nelis;Jelte;Luca;Ruben S.
+13u00;2;Thomas J.;Simon;Carl;Helger
+13u00;3;Eerste;Vierde;Tweede;Derde
+13u00;4;Gust;Lene/Jolien*;Eli;Wendy/Jolien*
+13u00;5;Thomas M.;Elina/Olivia*;Gyan;Nina/Olivia*
+13u00;6;Lucas;Cil;Elliot;Qitian (Timothy)
+13u00;7;Jasper H.;Amanuel;Marco;Atharv
+13u30;1;Eerste;Vierde;Tweede;Derde
+13u30;2;Eerste;Vierde;Tweede;Derde
+13u30;3;Gust;Ruben Hermus;Thomas M.;Klaas
+13u30;4;Eli;Jonas G.;Gyan;Toon V.
+13u30;5;Jolie;Emma;Ella;Eline
+13u30;6;Franziska;Sien;Marijke;Janne
+13u30;7;Eerste;Vierde;Tweede;Derde
+14u00;1;Nelis;Mona;Thomas J.;Hannah
+14u00;2;Carl;Hanne;Luca;Erin
+14u00;3;Jannes;Sem;Boonen;Wannes
+14u00;4;Dries;Lander;Bavo;Joppe
+14u00;5;Jelle;Stefaan;Wouter;Han
+14u00;6;Peter;Kobe;Ward;Sander
+14u00;7;Eerste;Vierde;Tweede;Derde
+14u00;8;Eerste;Vierde;Tweede;Derde
+14u30;1;Jelte;Kristien/Evy**;Simon;Soetkin/Els L**
+14u30;2;Helger;Vonne;Ruben S.;Kira
+14u30;3;Eerste;Vierde;Tweede;Derde
+14u30;4;Eerste;Vierde;Tweede;Derde
+14u30;5;Eerste;Vierde;Tweede;Derde
+15u00;1;Jelte;Toon/Ryan**;Helger;Pieter
+15u00;2;Simon;Felix;Ruben S.;Yoeri
+15u00;3;Jelle;Gust;Ward;Gyan
+15u00;4;Peter;Eli;Wouter;Thomas M.
+15u00;5;Eerste;Vierde;Tweede;Derde
+15u00;6;Jasper G.;Lene/Jolien*;Yuchen;Nina/Olivia*
+15u00;7;Ruben Egging;Wendy/Jolien*;Shain;Elina/Olivia*
+15u00;8;Eerste;Vierde;Tweede;Derde
+15u30;1;Nelis;Kristien/Evy**;Carl;Vonne
+15u30;2;Thomas J.;Soetkin/Els L**;Luca;Kira
+15u30;3;Jannes;Jelle;Dries;Peter
+15u30;4;Boonen;Wouter;Bavo;Ward
+15u30;5;Stefaan;Sem;Sander;Joppe
+15u30;6;Kobe;Lander;Han;Wannes
+15u30;7;Mona;Emma;Hanne;Sien
+15u30;8;Hannah;Eline;Erin;Janne
+16u00;1;Nelis;Toon/Ryan**;Luca;Yoeri
+16u00;2;Thomas J.;Felix;Carl;Pieter
+16u00;3;Jelte;Emma;Ruben S.;Janne
+16u00;4;Simon;Eline;Helger;Sien
+16u00;5;Lucas;Cil;Jasper H.;Amanuel
+16u00;6;Elliot;Qitian (Timothy);Marco;Atharv
+16u30;1;Jannes;Jolie;Boonen;Franziska
+16u30;2;Dries;Ella;Bavo;Marijke
+16u30;3;Stefaan;Lucas;Han;Elliot
+16u30;4;Kobe;Jasper H.;Sander;Marco
+16u30;5;Eerste;Vierde;Tweede;Derde
+16u30;6;Ruben Hermus;Jasper G.;Jonas G.;Ruben Egging
+16u30;7;Klaas;Shain;Toon V.;Yuchen
+16u30;8;Eerste;Vierde;Tweede;Derde
+;;;;;

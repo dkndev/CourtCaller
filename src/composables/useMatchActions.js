@@ -21,18 +21,25 @@ export function useMatchActions (props, matches, saveCacheMatches, playText, set
     saveCacheMatches()
 
     // Generate announcement using template
-    const discipline = DISCIPLINE_NAMES[match.teamA.discipline] || match.teamA.discipline || 'Onbekend'
-    const level = match.teamA.levelLabel ? `${match.teamA.levelLabel}` : ''
     const teamANames = match.teamA.names.length > 0 ? match.teamA.names.join(' en ') : 'Team A'
     const teamBNames = match.teamB.names.length > 0 ? match.teamB.names.join(' en ') : 'Team B'
 
-    // Replace template variables
-    const text = props.announcementTemplate
-      .replace(/{court}/g, match.court)
-      .replace(/{discipline}/g, discipline)
-      .replace(/{level}/g, level)
-      .replace(/{teamA}/g, teamANames)
-      .replace(/{teamB}/g, teamBNames)
+    let text
+    if (match.isClubTornooi) {
+      // For club tornooi: simpler announcement without discipline/level
+      text = `Op baan ${match.court}, ${teamANames} tegen ${teamBNames}.`
+    } else {
+      // For regular tornooien: use full template with discipline/level
+      const discipline = DISCIPLINE_NAMES[match.teamA.discipline] || match.teamA.discipline || 'Onbekend'
+      const level = match.teamA.levelLabel ? `${match.teamA.levelLabel}` : ''
+
+      text = props.announcementTemplate
+        .replace(/{court}/g, match.court)
+        .replace(/{discipline}/g, discipline)
+        .replace(/{level}/g, level)
+        .replace(/{teamA}/g, teamANames)
+        .replace(/{teamB}/g, teamBNames)
+    }
 
     playText(text, (errorMsg) => {
       setError(errorMsg)

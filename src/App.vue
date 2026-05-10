@@ -10,9 +10,9 @@
         </span>
       </div>
 
-      <!-- CourtCaller mode: Update machten button -->
+      <!-- CourtCaller mode: Update machten button (normal scraping mode) -->
       <Button
-        v-if="!settings.tvMode"
+        v-if="!settings.tvMode && !settings.clubTornooiMode"
         severity="secondary"
         :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
         :disabled="!settings.scrapeUrl.trim() || isLoading"
@@ -20,9 +20,18 @@
         label="Update machten"
       />
 
+      <!-- CourtCaller Club Tornooi mode: Upload CSV button -->
+      <Button
+        v-else-if="!settings.tvMode && settings.clubTornooiMode"
+        severity="secondary"
+        icon="pi pi-upload"
+        @click="triggerCsvUpload"
+        label="Upload CSV"
+      />
+
       <!-- TV mode: Manual refresh button -->
       <Button
-        v-else
+        v-else-if="settings.tvMode"
         severity="secondary"
         :icon="tvLoading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'"
         :disabled="!settings.scrapeUrl || !settings.scrapeUrl.trim() || tvLoading"
@@ -86,6 +95,7 @@ const settings = ref({
   // CourtCaller settings
   scrapeUrl: '',
   courtAmount: 11,
+  clubTornooiMode: false,
   announcementTemplate: 'Op baan {court}, {discipline} {level}: {teamA} tegen {teamB}. Baan {court}',
   aanvangenTemplate: 'Baan {court}, aanvangen alsjeblieft',
   recallTemplate: '{callCount} oproep, baan {court}, {teamNames}',
@@ -184,6 +194,12 @@ const saveSettings = (newSettings) => {
 const updateMatches = () => {
   if (matchListRef.value && matchListRef.value.fetchMatches) {
     matchListRef.value.fetchMatches()
+  }
+}
+
+const triggerCsvUpload = () => {
+  if (matchListRef.value && matchListRef.value.triggerCsvUpload) {
+    matchListRef.value.triggerCsvUpload()
   }
 }
 

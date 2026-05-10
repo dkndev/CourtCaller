@@ -4,7 +4,15 @@
       <!-- General Settings -->
       <AccordionTab header="Algemene Instellingen">
         <div class="space-y-4">
-          <div>
+          <div class="flex items-center justify-between">
+            <div>
+              <label for="clubTornooiMode" class="text-xs font-bold text-white block">Club Tornooi Modus</label>
+              <small class="text-gray-500 text-xs">Upload CSV bestand in plaats van scrapen van URL</small>
+            </div>
+            <ToggleSwitch id="clubTornooiMode" v-model="localSettings.clubTornooiMode"/>
+          </div>
+
+          <div v-if="!localSettings.clubTornooiMode">
             <label for="scrapeUrl" class="text-xs font-bold text-white block mb-1">Scrape URL</label>
             <InputText id="scrapeUrl" v-model="localSettings.scrapeUrl" type="text" class="w-full"/>
           </div>

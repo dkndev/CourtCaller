@@ -1,5 +1,14 @@
 <template>
   <div class="p-5 mx-auto">
+    <!-- Hidden file input for CSV upload -->
+    <input
+      ref="csvFileInput"
+      type="file"
+      accept=".csv"
+      style="display: none"
+      @change="handleCsvUpload"
+    />
+
     <div class="mb-8 flex items-center justify-between">
       <h2 class="text-2xl font-bold text-white">Wedstrijden</h2>
       <div v-if="error" class="p-3 bg-red-100 text-red-700 rounded-lg text-sm border-l-4 border-red-700">{{ error }}</div>
@@ -41,7 +50,8 @@
           <div class="grid grid-cols-3 gap-3 items-center">
             <div>
               <div class="font-bold text-sm text-white">{{ match.time || match.matchNumber }}</div>
-              <div class="flex gap-2 mt-2">
+              <!-- Only show discipline/level badges if not a club tornooi match -->
+              <div v-if="!match.isClubTornooi && match.teamA.levelLabel" class="flex gap-2 mt-2">
                 <span class="text-xs font-bold text-white px-2 py-1 rounded" :class="getDisciplineClass(match.teamA.discipline)">
                   {{ getDisciplineName(match.teamA.discipline) }}
                 </span>
@@ -127,6 +137,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import Button from 'primevue/button'
 import { useMatches } from '@/composables/useMatches'
 import { useAudio } from '@/composables/useAudio'
@@ -197,9 +208,76 @@ const {
   playTeamRecall
 } = useMatchActions(props, matches, saveCacheMatches, playText, setError)
 
-// Expose fetchMatches so parent can call it
+// CSV upload functionality
+const csvFileInput = ref(null)
+
+const triggerCsvUpload = () => {
+  csvFileInput.value?.click()
+}
+
+const handleCsvUpload = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  emit('update:isLoading', true)
+  error.value = ''
+  successMessage.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(`${props.apiBaseUrl}/api/upload-csv`, {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const newMatches = data.matches || []
+
+    // Preserve court assignments from existing matches
+    const oldMatches = matches.value
+    const mergedMatches = newMatches.map(newMatch => {
+      const existingMatch = oldMatches.find(oldMatch =>
+        oldMatch.id === newMatch.id ||
+        (oldMatch.time === newMatch.time &&
+          oldMatch.teamA.names[0] === newMatch.teamA.names[0])
+      )
+
+      if (existingMatch && existingMatch.court) {
+        return {...newMatch, court: existingMatch.court, callCount: existingMatch.callCount || 1}
+      }
+
+      return {...newMatch, callCount: newMatch.court ? 1 : 0}
+    })
+
+    matches.value = mergedMatches
+    saveCacheMatches()
+    successMessage.value = `${matches.value.length} wedstrijden geladen uit CSV!`
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
+  } catch (err) {
+    console.error('CSV upload error:', err)
+    error.value = `Fout: ${err.message}`
+  } finally {
+    emit('update:isLoading', false)
+    // Reset file input
+    if (csvFileInput.value) {
+      csvFileInput.value.value = ''
+    }
+  }
+}
+
+// Expose fetchMatches and triggerCsvUpload so parent can call them
 defineExpose({
-  fetchMatches
+  fetchMatches,
+  triggerCsvUpload
 })
 </script>
 

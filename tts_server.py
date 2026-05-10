@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import base64
+import csv
+import io
 import os
 import queue
 import threading
@@ -285,6 +287,95 @@ def scrape_matches():
         return jsonify({'error': f'Failed to fetch URL: {str(e)}'}), 400
     except Exception as e:
         print(f"Scraping error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/upload-csv', methods=['POST'])
+def upload_csv():
+    """Parse CSV file with club tornooi matches"""
+    try:
+        # Check if file is in request
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Read CSV content
+        content = file.read().decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(content), delimiter=';')
+
+        matches = []
+        for row in csv_reader:
+            # Skip empty rows
+            if not row.get('Tijd') or not row.get('Veld'):
+                continue
+
+            time = row.get('Tijd', '').strip()
+            court = row.get('Veld', '').strip()
+
+            # Parse team A players
+            team_a_player1 = row.get('Speler 1', '').strip()
+            team_a_player2 = row.get('Speler 2', '').strip()
+            team_a_names = [team_a_player1] if team_a_player1 else []
+            if team_a_player2:
+                team_a_names.append(team_a_player2)
+
+            # Parse team B players
+            team_b_player1 = row.get('Speler 3', '').strip()
+            team_b_player2 = row.get('Speler 4', '').strip()
+            team_b_names = [team_b_player1] if team_b_player1 else []
+            if team_b_player2:
+                team_b_names.append(team_b_player2)
+
+            # Skip placeholder matches (Eerste, Tweede, Derde, Vierde)
+            all_names = ' '.join(team_a_names + team_b_names).lower()
+            if any(placeholder in all_names for placeholder in ['eerste', 'tweede', 'derde', 'vierde']):
+                continue
+
+            # Skip if no valid players
+            if not team_a_names or not team_b_names:
+                continue
+
+            # Determine discipline based on number of players (for internal use only)
+            discipline = 'HD' if len(team_a_names) == 2 and len(team_b_names) == 2 else 'HE'
+
+            # Create match entry
+            match_id = f'{time}-{court}-{"-".join(team_a_names[:2])}'
+
+            # Try to parse court as integer
+            try:
+                court_num = int(court) if court else 0
+            except ValueError:
+                court_num = 0
+
+            matches.append({
+                'id': match_id,
+                'matchNumber': time,
+                'time': time,
+                'court': court_num,
+                'isClubTornooi': True,  # Flag to indicate this is a club tornooi match
+                'teamA': {
+                    'names': team_a_names,
+                    'discipline': discipline,
+                    'levelLabel': ''  # Empty for club tornooien
+                },
+                'teamB': {
+                    'names': team_b_names,
+                    'discipline': discipline,
+                    'levelLabel': ''  # Empty for club tornooien
+                }
+            })
+
+        if not matches:
+            return jsonify({'error': 'No valid matches found in CSV'}), 400
+
+        return jsonify({'matches': matches}), 200
+
+    except Exception as e:
+        print(f"CSV upload error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/health')

@@ -47,6 +47,7 @@
             class="text-base px-3 py-1"
           />
           <Tag
+            v-if="!match.isClubTornooi && match.teamA.levelLabel"
             :value="getDisciplineLabel(match.teamA.discipline) + ' ' + match.teamA.levelLabel"
             :icon="getDisciplineIcon(match.teamA.discipline)"
             :severity="getDisciplineSeverity(match.teamA.discipline)"
